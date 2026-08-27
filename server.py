@@ -26,7 +26,18 @@ def index():
 
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
-    club = [club for club in clubs if club['email'] == request.form['email']][0]
+    # club = [club for club in clubs if club['email'] == request.form['email']][0]
+    # Remove [0], as the list type is being retained.
+    club_matching = [club for club in clubs if club['email'] == request.form['email']]
+    print(club_matching)
+
+    # If no club matches
+    if not club_matching:
+        flash('Email inconnu.')
+        return redirect(url_for('index'))
+
+    # Otherwise, take the first club (normally, there is only one).
+    club = club_matching[0]
     return render_template('welcome.html',club=club,competitions=competitions)
 
 
