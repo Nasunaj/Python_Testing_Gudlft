@@ -54,12 +54,55 @@ def book(competition,club):
 
 @app.route('/purchasePlaces',methods=['POST'])
 def purchasePlaces():
+    competition_name = request.form['competition']
+
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
+
+    # Check if the competition or club exists.
+    if not competition or not club:
+        flash("Compétition ou club introuvable.")
+        return render_template('welcome.html', club=club,
+                               competitions=competitions)
+    competition = competitions[0]
+    club = clubs[0]
     placesRequired = int(request.form['places'])
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
-    flash('Great-booking complete!')
-    return render_template('welcome.html', club=club, competitions=competitions)
+    print(placesRequired)
+
+    # check if club has enough points
+    if int(club['points']) < placesRequired:
+        flash("Vous n avez pas assez de points pour acheter ces places.")
+        return render_template('welcome.html', club=club,
+                               competitions=competitions)
+    # check if competition has enough place
+    if int(competition['numberOfPlaces']) < placesRequired:
+        flash("Il n y a pas assez de places pour cette competition.")
+        return render_template('welcome.html', club=club,
+                               competitions=competitions)
+    # Check if placeRiquered <= 12
+    current_reservations = club.get('reservations',{}).get(competition_name, 0)
+    if current_reservations + placesRequired > 12:
+        flash("Vous ne pouvez pas reserver plus de 12 places par competition.")
+        return render_template('welcome.html', club=club,
+                               competitions=competitions)
+
+    # Update club points and competition standings
+    club['points'] = f"{int(club['points']) - placesRequired}"
+    competition['numberOfPlaces'] = f"{int(competition['numberOfPlaces']) - placesRequired}"
+
+    if 'reservations' not in club:
+        club['reservations'] = {}
+    club['reservations'][competition_name] = current_reservations + placesRequired
+
+    # Save changes to the JSON files
+    with open('clubs.json', 'w') as c:
+        json.dump({'clubs': clubs}, c)
+    with open('competitions.json', 'w') as comps:
+        json.dump({'competitions': competitions}, comps)
+
+    flash("Reservation validee.")
+    return render_template('welcome.html', club=club,
+                           competitions=competitions)
 
 
 # TODO: Add route for points display
