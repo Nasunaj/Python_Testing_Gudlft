@@ -1,6 +1,6 @@
 import json
 from flask import Flask,render_template,request,redirect,flash,url_for
-from serveur_utils import find_club_by_email
+from server_utils import find_club_by_email, can_club_afford_places
 
 
 def loadClubs():
@@ -65,7 +65,7 @@ def purchasePlaces():
     print(placesRequired)
 
     # check if club has enough points
-    if int(club['points']) < placesRequired:
+    if can_club_afford_places(club, placesRequired) is False:
         flash("Vous n avez pas assez de points pour acheter ces places.")
         return render_template('welcome.html', club=club,
                                competitions=competitions)
