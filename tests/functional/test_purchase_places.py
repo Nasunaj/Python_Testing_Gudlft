@@ -100,3 +100,43 @@ def test_user_journey_purchase_with_enough_points(client, mocker,
     # 2. reservation no validate
     assert b"Reservation validee" in response.data
 
+def test_user_journey_exceed_12_places(client, mocker, test_club2,
+                                        test_competition):
+    """Simulates a user journey where a club try to book more than 12
+    places"""
+    import server
+    server.clubs = [test_club2]
+    server.competitions = [test_competition]
+
+    # Step 1 : go to the homepage
+    response = client.get('/')
+    assert response.status_code == 200
+
+    # Step 2 : Simulates 10 reservation already for this competition
+    test_club2['reservations'] = {test_competition['name']: 10}
+    print("gxdfghfhg")
+    print(test_club2)
+
+    # Step 3 : try to book 8 places (already 5 places
+    response = client.post(
+        '/purchasePlaces',
+        data={
+            'club': test_club2['name'],
+            'competition': test_competition['name'],
+            'places': 5
+        },
+        follow_redirects=True
+    )
+
+    # Check :
+    # 1. Error message disply
+    assert b"Vous ne pouvez pas reserver plus de 12 places par competition." in response.data
+
+    # 2. Reservation not validate
+    assert b"Reservation validee" not in response.data
+
+    # 3. Reservation not modify
+    assert test_club2['reservations'][
+               test_competition['name']] == 10  # Toujours 10 places
+
+

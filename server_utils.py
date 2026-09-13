@@ -9,3 +9,11 @@ def find_club_by_email(clubs, email):
 def can_club_afford_places(club, places_required):
     """Check if a club has enough points to buy places."""
     return int(club['points']) >= places_required
+
+
+def can_club_book_places(club, competition_name, places_required):
+    """Check if a club can reserve places without exceeding 12 places by
+    competition"""
+    current_reservations = club.get('reservations', {}).get(competition_name,
+                                                            0)
+    return current_reservations + places_required <= 12
