@@ -20,6 +20,16 @@ def client():
         # yield client : returns the client to the test using it.
         yield client
 
+# Fixture for a test club
+@pytest.fixture
+def test_club():
+    return {
+        'name': 'Test Club',
+        'email': 'test@club.com',
+        'points': '15',  # 10 points
+        'reservations': {}  # No reservations
+    }
+
 def test_show_summary_with_unknown_client(client):
     """Test that /showSummary redirects to index with an unknown email"""
     # Simulates a POST request to /showSummary with an unknown email.
@@ -38,13 +48,18 @@ def test_show_summary_with_unknown_client(client):
     assert response.status_code == 200
     assert b'Email inconnu' in response.data
 
-def test_show_summary_with_valid_email(client):
+def test_show_summary_with_valid_email(client, mocker, test_club):
     """Test that /showSummary displays welcome.html with a valid email."""
+    mocker.patch('server.loadClubs', return_value=[test_club])
+
+    import server
+    server.clubs = [test_club]
+
     response = client.post('/showSummary',
-                           data={'email': 'john@simplylift.co'},
+                           data={'email': test_club['email']},
                            follow_redirects=True
                            )
     assert response.status_code == 200
-    assert b'john@simplylift.co' in response.data
+    assert b'test@club.com' in response.data
 
 
