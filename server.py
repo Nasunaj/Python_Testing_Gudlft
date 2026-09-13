@@ -1,6 +1,7 @@
 import json
 from flask import Flask,render_template,request,redirect,flash,url_for
-from server_utils import find_club_by_email, can_club_afford_places
+from server_utils import find_club_by_email, can_club_afford_places, \
+    can_club_book_places
 
 
 def loadClubs():
@@ -74,9 +75,11 @@ def purchasePlaces():
         flash("Il n y a pas assez de places pour cette competition.")
         return render_template('welcome.html', club=club,
                                competitions=competitions)
+
+    current_reservations = club.get('reservations', {}).get(competition_name,
+                                                            0)
     # Check if placeRiquered <= 12
-    current_reservations = club.get('reservations',{}).get(competition_name, 0)
-    if current_reservations + placesRequired > 12:
+    if not can_club_book_places(club, competition['name'], placesRequired):
         flash("Vous ne pouvez pas reserver plus de 12 places par competition.")
         return render_template('welcome.html', club=club,
                                competitions=competitions)
