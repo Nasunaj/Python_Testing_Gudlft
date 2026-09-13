@@ -1,4 +1,4 @@
-from serveur_utils import find_club_by_email
+from server_utils import find_club_by_email
 
 def test_club_found_by_email():
     """Verifies that a club is found using a valid email address."""
