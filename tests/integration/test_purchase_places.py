@@ -1,6 +1,6 @@
 import json
 import pytest
-from flask import Flask
+from datetime import datetime, timedelta
 from server import app
 
 @pytest.fixture
@@ -33,14 +33,18 @@ def test_club2():
 def test_competition():
     return {
         'name': 'Test Competition',
-        'numberOfPlaces': '20'  # 20 available places
+        'numberOfPlaces': '20',  # 20 available places
+        'date': f'{(datetime.now() + timedelta(days=2)).strftime(
+            '%Y-%m-%d %H:%M:%S')}'
     }
 
 @pytest.fixture
 def test_competition2():
     return {
         'name': 'Test Competition',
-        'numberOfPlaces': '5'  # 20 available places
+        'numberOfPlaces': '5',  # 20 available places
+        'date': f'{(datetime.now() + timedelta(days=2)).strftime(
+            '%Y-%m-%d %H:%M:%S')}'
     }
 
 

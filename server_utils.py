@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 
 # Aucun flask import et aucune redirection (route)
 def find_club_by_email(clubs, email):
@@ -32,3 +33,8 @@ def save_competitions_to_json(competitions, filename='competitions.json'):
     """aves the list of competitions to a JSON file"""
     with open(filename, 'w') as f:
         json.dump({'competitions': competitions}, f)
+
+def is_competition_open(competition):
+    """Check if a competition is open (date not yet passed and no in 1 hour)."""
+    competition_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
+    return competition_date >= datetime.now() + timedelta(hours=1)
