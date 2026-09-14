@@ -1,5 +1,8 @@
+import os
+import json
 from server_utils import can_club_afford_places, can_club_book_places, \
-    has_competition_enough_places
+    has_competition_enough_places, save_clubs_to_json, \
+    save_competitions_to_json
 
 
 def test_club_has_enough_points():
@@ -47,5 +50,43 @@ def test_competition_has_enough_places():
     places_required = 4
     assert has_competition_enough_places(competition, places_required) is True
 
+def test_save_clubs_to_json():
+    """Ckeck clubs are saved in clubs.json."""
+
+    test_clubs = [{'name': 'Test_club', 'email': 'aaa@club.com', 'points': '6'}]
+
+    # Sauvegarder in a temporary file for test
+    test_filename = 'test_clubs.json'
+    save_clubs_to_json(test_clubs, test_filename)
+
+    # check if the file exists and has the data
+    assert os.path.exists(test_filename)
+    with open(test_filename, 'r') as f:
+        saved_data = json.load(f)
+    assert saved_data['clubs'] == test_clubs
+    # print(saved_data)
+
+    # delete temporary file
+    os.remove(test_filename)
+
+def test_save_competitions_to_json():
+    """Ckeck competitions are saved in competitions.json."""
+
+    test_competitions = [{'name': 'Test_competition',
+                          'date': '2020-03-27 10:00:00','numberOfPlaces': '6'}]
+
+    # Sauvegarder in a temporary file for test
+    test_filename = 'test_clubs.json'
+    save_competitions_to_json(test_competitions, test_filename)
+
+    # check if the file exists and has the data
+    assert os.path.exists(test_filename)
+    with open(test_filename, 'r') as f:
+        saved_data = json.load(f)
+    assert saved_data['competitions'] == test_competitions
+    # print(saved_data)
+
+    # delete temporary file
+    os.remove(test_filename)
 
 
