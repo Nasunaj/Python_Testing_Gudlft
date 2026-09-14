@@ -2,7 +2,7 @@ import json
 from flask import Flask,render_template,request,redirect,flash,url_for
 from server_utils import find_club_by_email, can_club_afford_places, \
     can_club_book_places, has_competition_enough_places, save_clubs_to_json, \
-    save_competitions_to_json
+    save_competitions_to_json, is_competition_open
 
 
 def loadClubs():
@@ -65,6 +65,13 @@ def purchasePlaces():
     club = clubs[0]
     placesRequired = int(request.form['places'])
     print(placesRequired)
+
+    # Check if the competition is open (with a hour lead time beforehand)
+    if not is_competition_open(competition):
+        flash("Vous ne pouvez pas reserver des places pour une competition "
+              "passee ou fermees dans moins d une heure.")
+        return render_template('welcome.html', club=club,
+                                       competitions=competitions)
 
     # check if club has enough points
     if can_club_afford_places(club, placesRequired) is False:

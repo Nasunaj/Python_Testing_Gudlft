@@ -1,6 +1,7 @@
 import pytest
 from server import app
 import json
+from datetime import datetime, timedelta
 
 @pytest.fixture
 def client():
@@ -24,7 +25,9 @@ def test_club2():
 def test_competition():
     return {
         'name': 'Test Competition',
-        'numberOfPlaces': '20'  # 20 available places
+        'numberOfPlaces': '20',  # 20 available places
+        'date': f'{(datetime.now() + timedelta(days=2)).strftime(
+            '%Y-%m-%d %H:%M:%S')}'
     }
 
 def test_user_journey_purchase_without_enough_points(client, mocker,
