@@ -36,5 +36,11 @@ def save_competitions_to_json(competitions, filename='competitions.json'):
 
 def is_competition_open(competition):
     """Check if a competition is open (date not yet passed and no in 1 hour)."""
-    competition_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
+    competition_date = datetime.strptime(competition['date'],
+                                         '%Y-%m-%d %H:%M:%S')
     return competition_date >= datetime.now() + timedelta(hours=1)
+
+def get_clubs_sorted_by_points(clubs):
+    """Returns a list of clubs sorted by points."""
+    return sorted(clubs, key=lambda club: int(club['points']), reverse=True)
+

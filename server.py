@@ -2,7 +2,7 @@ import json
 from flask import Flask,render_template,request,redirect,flash,url_for
 from server_utils import find_club_by_email, can_club_afford_places, \
     can_club_book_places, has_competition_enough_places, save_clubs_to_json, \
-    save_competitions_to_json, is_competition_open
+    save_competitions_to_json, is_competition_open, get_clubs_sorted_by_points
 
 
 def loadClubs():
@@ -110,7 +110,11 @@ def purchasePlaces():
 
 
 # TODO: Add route for points display
-
+@app.route('/points')
+def show_points():
+    """Display public board points of clubs"""
+    sorted_clubs = get_clubs_sorted_by_points(clubs)
+    return render_template('points.html', clubs=sorted_clubs)
 
 @app.route('/logout')
 def logout():
