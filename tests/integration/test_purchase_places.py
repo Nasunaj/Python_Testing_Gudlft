@@ -120,7 +120,58 @@ def test_purchase_places_exceed_cumulative_12_places(client, mocker,
         follow_redirects=True
     )
     assert response.status_code == 200
-    assert (b"Vous ne pouvez pas reserver plus de 12 places par competition." in response.data)
+    assert (b"Vous ne pouvez pas reserver plus de 12 places par competition."
+            in response.data)
+
+def test_purchase_places_without_enough_competition_places(client, mocker,
+                                                           test_club2,
+                                                           test_competition2):
+    mocker.patch('server.loadClubs', return_value=[test_club2])
+    mocker.patch('server.loadCompetitions', return_value=[test_competition2])
+
+    import server
+    server.clubs = [test_club2]
+    server.competitions = [test_competition2]
+
+    places_required = int(test_competition2['numberOfPlaces']) + 1
+
+    response = client.post(
+        '/purchasePlaces',
+        data={
+            'club': test_club2['name'],
+            'competition': test_competition2['name'],
+            'places': places_required
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert (b"Il n y a pas assez de places pour cette competition" in
+            response.data)
+    assert b"Reservation validee" not in response.data
+
+def test_purchase_places_with_enough_competition_places(client, mocker,
+                                                           test_club2,
+                                                           test_competition2):
+    mocker.patch('server.loadClubs', return_value=[test_club2])
+    mocker.patch('server.loadCompetitions', return_value=[test_competition2])
+
+    import server
+    server.clubs = [test_club2]
+    server.competitions = [test_competition2]
+
+    places_required = int(test_competition2['numberOfPlaces']) - 1
+
+    response = client.post(
+        '/purchasePlaces',
+        data={
+            'club': test_club2['name'],
+            'competition': test_competition2['name'],
+            'places': places_required
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"Reservation validee" in response.data
 
 # def test_purchase_places_saves_points_to_json(client):
 #     """Test that club's points and reservations number are saved in clubs.json after reservation and
@@ -209,34 +260,6 @@ def test_purchase_places_with_valid_data(client, mocker, test_club,
     )
     assert response.status_code == 200
     assert b"Reservation validee." in response.data
-
-
-def test_purchase_places_without_enough_competition_places(client, mocker,
-                                                           test_club2,
-                                                           test_competition2):
-    mocker.patch('server.loadClubs', return_value=[test_club2])
-    mocker.patch('server.loadCompetitions', return_value=[test_competition2])
-
-    import server
-    server.clubs = [test_club2]
-    server.competitions = [test_competition2]
-
-    places_required = int(test_competition2['numberOfPlaces']) + 1
-
-    response = client.post(
-        '/purchasePlaces',
-        data={
-            'club': test_club2['name'],
-            'competition': test_competition2['name'],
-            'places': places_required
-        },
-        follow_redirects=True
-    )
-    assert b"Great-booking complete!" not in response.data
-    assert response.status_code == 200
-    assert (b"Il n y a pas assez de places pour cette competition" in
-            response.data)
-
 
 
 if __name__ == '__main__':
