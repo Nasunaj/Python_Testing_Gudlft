@@ -1,3 +1,5 @@
+import json
+
 # Aucun flask import et aucune redirection (route)
 def find_club_by_email(clubs, email):
     """Find a club by email. Return None if no club is found."""
@@ -20,3 +22,13 @@ def can_club_book_places(club, competition_name, places_required):
 def has_competition_enough_places(competition, places_required):
     """Check if a competition has enough available places."""
     return int(competition['numberOfPlaces']) >= places_required
+
+def save_clubs_to_json(clubs, filename='clubs.json'):
+    """Saves the list of clubs to a JSON file."""
+    with open(filename, 'w') as f:
+        json.dump({'clubs': clubs}, f)
+
+def save_competitions_to_json(competitions, filename='competitions.json'):
+    """aves the list of competitions to a JSON file"""
+    with open(filename, 'w') as f:
+        json.dump({'competitions': competitions}, f)

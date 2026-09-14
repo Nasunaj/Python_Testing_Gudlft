@@ -1,7 +1,8 @@
 import json
 from flask import Flask,render_template,request,redirect,flash,url_for
 from server_utils import find_club_by_email, can_club_afford_places, \
-    can_club_book_places, has_competition_enough_places
+    can_club_book_places, has_competition_enough_places, save_clubs_to_json, \
+    save_competitions_to_json
 
 
 def loadClubs():
@@ -71,8 +72,6 @@ def purchasePlaces():
         return render_template('welcome.html', club=club,
                                competitions=competitions)
 
-    current_reservations = club.get('reservations', {}).get(competition_name,
-                                                            0)
     # Check if placeRiquered <= 12
     if not can_club_book_places(club, competition['name'], placesRequired):
         flash("Vous ne pouvez pas reserver plus de 12 places par competition.")
@@ -91,13 +90,12 @@ def purchasePlaces():
 
     if 'reservations' not in club:
         club['reservations'] = {}
-    club['reservations'][competition_name] = current_reservations + placesRequired
+    club['reservations'][competition_name] = (
+            club['reservations'].get(competition['name'], 0) + placesRequired)
 
     # Save changes to the JSON files
-    with open('clubs.json', 'w') as c:
-        json.dump({'clubs': clubs}, c)
-    with open('competitions.json', 'w') as comps:
-        json.dump({'competitions': competitions}, comps)
+    save_clubs_to_json(clubs)
+    save_competitions_to_json(competitions)
 
     flash("Reservation validee.")
     return render_template('welcome.html', club=club,
