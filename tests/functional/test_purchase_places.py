@@ -104,6 +104,8 @@ def test_user_journey_exceed_12_places(client, mocker, test_club2,
                                         test_competition):
     """Simulates a user journey where a club try to book more than 12
     places"""
+    mocker.patch('server.loadClubs', return_value=[test_club2])
+    mocker.patch('server.loadCompetitions', return_value=[test_competition])
     import server
     server.clubs = [test_club2]
     server.competitions = [test_competition]
@@ -139,4 +141,81 @@ def test_user_journey_exceed_12_places(client, mocker, test_club2,
     assert test_club2['reservations'][
                test_competition['name']] == 10  # Toujours 10 places
 
+def test_user_journey_purchase_without_enough_competition_places(client,
+                                                                 mocker,
+                                                                 test_club2,
+                                                                 test_competition):
+    """Simulate a user journey where a competition has not enough places."""
+    mocker.patch('server.loadClubs', return_value=[test_club2])
+    mocker.patch('server.loadCompetitions', return_value=[test_competition])
+
+    import server
+    server.clubs = [test_club2]
+    server.competitions = [test_competition]
+    test_competition['numberOfPlaces'] = 3
+    test_club2['points'] = 4
+    required_places = int(test_competition['numberOfPlaces'])+1
+
+    # Step 1 : go to the homepage
+    response = client.get('/')
+    assert response.status_code == 200
+
+    # Step 2 : try to book more places than available in the competition
+    response = client.post(
+        '/purchasePlaces',
+        data={
+            'club': test_club2['name'],
+            'competition': test_competition['name'],
+            'places': required_places
+        },
+        follow_redirects=True
+    )
+
+    # Check :
+    # 1. Error message display
+    assert b"Il n y a pas assez de places pour cette competition" in response.data
+
+    # 2. the booking not validate
+    assert b"Reservation validee" not in response.data
+
+    # 3. the number of competiton available places not modify (always 3)
+    assert int(test_competition['numberOfPlaces']) == 3
+
+def test_user_journey_purchase_with_enough_competition_places(client,
+                                                                 mocker,
+                                                                 test_club2,
+                                                                 test_competition):
+    """Simulate a user journey where a competition has not enough places."""
+    mocker.patch('server.loadClubs', return_value=[test_club2])
+    mocker.patch('server.loadCompetitions', return_value=[test_competition])
+
+    import server
+    server.clubs = [test_club2]
+    server.competitions = [test_competition]
+    test_competition['numberOfPlaces'] = 3
+    test_club2['points'] = 4
+    required_places = int(test_competition['numberOfPlaces'])-1
+    available_places = int(test_competition['numberOfPlaces']) - required_places
+
+    # Step 1 : go to the homepage
+    response = client.get('/')
+    assert response.status_code == 200
+
+    # Step 2 : try to book more places than available in the competition
+    response = client.post(
+        '/purchasePlaces',
+        data={
+            'club': test_club2['name'],
+            'competition': test_competition['name'],
+            'places': required_places
+        },
+        follow_redirects=True
+    )
+
+    # Check :
+    # 2. the booking not validate
+    assert b"Reservation validee" in response.data
+
+    # 3. the number of competiton available places is modified
+    assert int(test_competition['numberOfPlaces']) == available_places
 

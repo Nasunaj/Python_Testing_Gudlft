@@ -1,4 +1,5 @@
-from server_utils import can_club_afford_places, can_club_book_places
+from server_utils import can_club_afford_places, can_club_book_places, \
+    has_competition_enough_places
 
 
 def test_club_has_enough_points():
@@ -25,7 +26,6 @@ def test_club_reservations_under_limit():
     assert (can_club_book_places(club, competition_name, places_required) is
             True)
 
-
 def test_club_reservations_exceed_limit():
     """Test that a club cannot exceed 12 places per competition."""
     club = {"name": "Simply Lift", "email": "john@simplylift.co",
@@ -34,6 +34,18 @@ def test_club_reservations_exceed_limit():
     places_required = 3
     assert (can_club_book_places(club, competition_name, places_required) is
             False)
+
+def test_competition_not_enough_places():
+    """Competition has not enough places."""
+    competition = {'numberOfPlaces': '5'}
+    places_required = 10
+    assert has_competition_enough_places(competition, places_required) is False
+
+def test_competition_has_enough_places():
+    """Competition has enough places."""
+    competition = {'numberOfPlaces': '5'}
+    places_required = 4
+    assert has_competition_enough_places(competition, places_required) is True
 
 
 
