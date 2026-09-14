@@ -2,7 +2,9 @@ import json
 from flask import Flask,render_template,request,redirect,flash,url_for
 from server_utils import find_club_by_email, can_club_afford_places, \
     can_club_book_places, has_competition_enough_places, save_clubs_to_json, \
-    save_competitions_to_json, is_competition_open, get_clubs_sorted_by_points
+    save_competitions_to_json, is_competition_open, get_clubs_sorted_by_points, \
+    is_missing_club_or_competition, find_competition_by_name, \
+    find_club_by_name, ensure_reservations_exists
 
 
 def loadClubs():
@@ -40,29 +42,33 @@ def showSummary():
 
 @app.route('/book/<competition>/<club>')
 def book(competition,club):
-    foundClub = [c for c in clubs if c['name'] == club][0]
-    foundCompetition = [c for c in competitions if c['name'] == competition][0]
+    foundClub = find_club_by_name(clubs, club)
+    foundCompetition = find_competition_by_name(competitions, competition)
     if foundClub and foundCompetition:
-        return render_template('booking.html',club=foundClub,competition=foundCompetition)
+        return render_template('booking.html',club=foundClub,
+                               competition=foundCompetition)
     else:
         flash("Something went wrong-please try again")
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template('welcome.html',
+                               club={'name': club, 'email': '', 'points': '0'},
+                               competitions=competitions)
 
 
 @app.route('/purchasePlaces',methods=['POST'])
 def purchasePlaces():
     competition_name = request.form['competition']
+    club_name = request.form['club']
 
-    competition = [c for c in competitions if c['name'] == request.form['competition']][0]
-    club = [c for c in clubs if c['name'] == request.form['club']][0]
+    competition = find_competition_by_name(competitions, competition_name)
+    club = find_club_by_name(clubs, club_name)
 
-    # Check if the competition or club exists.
-    if not competition or not club:
-        flash("Compétition ou club introuvable.")
+    # (Additional for coverage) Check if the competition or club exists.
+    if is_missing_club_or_competition(club, competition):
+        flash("Competition ou club introuvable.")
         return render_template('welcome.html', club=club,
                                competitions=competitions)
-    competition = competitions[0]
-    club = clubs[0]
+    # competition = competitions[0]
+    # club = clubs[0]
     placesRequired = int(request.form['places'])
     print(placesRequired)
 
@@ -95,8 +101,9 @@ def purchasePlaces():
     club['points'] = f"{int(club['points']) - placesRequired}"
     competition['numberOfPlaces'] = f"{int(competition['numberOfPlaces']) - placesRequired}"
 
-    if 'reservations' not in club:
-        club['reservations'] = {}
+    # if 'reservations' not in club:
+    #     club['reservations'] = {}
+    ensure_reservations_exists(club)
     club['reservations'][competition_name] = (
             club['reservations'].get(competition['name'], 0) + placesRequired)
 

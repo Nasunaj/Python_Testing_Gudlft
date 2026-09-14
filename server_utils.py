@@ -44,3 +44,22 @@ def get_clubs_sorted_by_points(clubs):
     """Returns a list of clubs sorted by points."""
     return sorted(clubs, key=lambda club: int(club['points']), reverse=True)
 
+# Additionnal functional to increase coverage
+def find_competition_by_name(competitions, name):
+    """Find a compétition par by name. Retourne None if not found."""
+    competition_matching = [c for c in competitions if c['name'] == name]
+    return competition_matching[0] if competition_matching else None
+
+def find_club_by_name(clubs, name):
+    """Find a compétition par by name. Retourne None if not found."""
+    club_matching = [c for c in clubs if c['name'] == name]
+    return club_matching[0] if club_matching else None
+
+def is_missing_club_or_competition(club, competition):
+    """Check if a club or competition missing."""
+    return not competition or not club
+
+def ensure_reservations_exists(club):
+    """Ensure reservations exists"""
+    if 'reservations' not in club:
+        club['reservations'] = {}
